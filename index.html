@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="ml">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>റിവർ ക്രോസിംഗ് പസിൽ (River Crossing Puzzle)</title>
+    <title>River Crossing Puzzle</title>
     <style>
         * {
             box-sizing: border-box;
@@ -165,51 +165,51 @@
 </head>
 <body>
 
-    <h1>റിവർ ക്രോസിംഗ് പസിൽ 🚣‍♂️</h1>
+    <h1>River Crossing Puzzle 🚣‍♂️</h1>
     <p class="instructions">
-        <b>നിയമങ്ങൾ:</b> കർഷകന് ഒരു സമയം ഒരു വസ്തു മാത്രമേ ബോട്ടിൽ കയറ്റാൻ പറ്റൂ.<br> 
-        കർഷകൻ ഒപ്പമില്ലെങ്കിൽ <b>ചെന്നായ ആടിനെയും</b>, <b>ആട് പുല്ലിനെയും</b> തിന്നും!
+        <b>Rules:</b> The farmer can only carry one item at a time in the boat.<br> 
+        Without the farmer present, the <b>wolf will eat the goat</b>, and the <b>goat will eat the cabbage</b>!
     </p>
 
     <div id="game-board">
-        <!-- ഇടത് കര (Left Bank) -->
+        <!-- Left Bank -->
         <div id="left-bank" class="bank">
             <div class="item" id="farmer" onclick="moveToBoat('farmer')">
                 <span class="emoji">👨‍🌾</span>
-                <span class="label">കർഷകൻ</span>
+                <span class="label">Farmer</span>
             </div>
             <div class="item" id="wolf" onclick="moveToBoat('wolf')">
                 <span class="emoji">🐺</span>
-                <span class="label">ചെന്നായ</span>
+                <span class="label">Wolf</span>
             </div>
             <div class="item" id="goat" onclick="moveToBoat('goat')">
                 <span class="emoji">🐐</span>
-                <span class="label">ആട്</span>
+                <span class="label">Goat</span>
             </div>
             <div class="item" id="cabbage" onclick="moveToBoat('cabbage')">
                 <span class="emoji">🥬</span>
-                <span class="label">പുല്ല്</span>
+                <span class="label">Cabbage</span>
             </div>
         </div>
 
-        <!-- നദി & ബോട്ട് (River & Boat) -->
+        <!-- River & Boat -->
         <div id="river">
             <div id="boat"></div>
         </div>
 
-        <!-- വലത് കര (Right Bank) -->
+        <!-- Right Bank -->
         <div id="right-bank" class="bank"></div>
     </div>
 
     <div id="controls">
-        <button onclick="crossRiver()">ബോട്ട് അക്കരേക്ക്/ഇക്കരേക്ക് മാറ്റുക 🚣</button>
-        <button id="reset-btn" onclick="resetGame()">വീണ്ടും തുടങ്ങുക 🔄</button>
+        <button onclick="crossRiver()">Cross River 🚣</button>
+        <button id="reset-btn" onclick="resetGame()">Reset Game 🔄</button>
     </div>
 
     <div id="message"></div>
 
     <script>
-        // ഗെയിം അവസ്ഥകൾ (Game State)
+        // Game State
         const state = {
             farmer: 'left',
             wolf: 'left',
@@ -220,44 +220,43 @@
 
         let isGameOver = false;
 
-        // വസ്തുക്കളെ ക്ലിക്ക് ചെയ്യുമ്പോൾ ബോട്ടിലേക്കോ കരയിലേക്കോ മാറ്റാൻ
+        // Move items between boat and banks on click
         function moveToBoat(item) {
             if (isGameOver) return;
 
-            // വസ്തു നിൽക്കുന്നത് ബോട്ട് നിൽക്കുന്ന കരയിലാണെങ്കിൽ മാത്രം ബോട്ടിൽ കയറ്റാം
+            // Items can only be loaded if they are on the same side as the boat
             if (state[item] === state.boatPosition) {
-                // ബോട്ട് കപ്പാസിറ്റി ചെക്ക് ചെയ്യുക (പരമാവധി കർഷകൻ + 1 വസ്തു)
                 const itemsInBoat = Object.keys(state).filter(k => state[k] === 'boat');
                 
                 if (item === 'farmer') {
                     state.farmer = 'boat';
                 } else {
-                    // ബോട്ടിൽ ഇതിനകം ഒരു വസ്തു ഉണ്ടെങ്കിൽ വേറെ വസ്തു കയറ്റാൻ പറ്റില്ല
+                    // Check boat capacity (farmer + max 1 item)
                     if (itemsInBoat.includes('wolf') || itemsInBoat.includes('goat') || itemsInBoat.includes('cabbage')) {
-                        showMessage("ബോട്ടിൽ കർഷകനെ കൂടാതെ ഒരു സാധനം മാത്രമേ കയറ്റാൻ പറ്റൂ!", "danger");
+                        showMessage("The boat can only hold one item along with the farmer!", "danger");
                         return;
                     }
                     state[item] = 'boat';
                 }
             } else if (state[item] === 'boat') {
-                // ബോട്ടിൽ ഉള്ളതിനെ ബോട്ട് നിലവിലുള്ള കരയിലേക്ക് ഇറക്കുക
+                // Unload item to the bank where the boat currently is
                 state[item] = state.boatPosition;
             }
 
             render();
         }
 
-        // ബോട്ട് അക്കരെയോ ഇക്കരെയോ നീക്കാൻ
+        // Cross the river
         function crossRiver() {
             if (isGameOver) return;
 
-            // കർഷകനില്ലാതെ ബോട്ട് ഓടില്ല
+            // Farmer must be in the boat to row
             if (state.farmer !== 'boat') {
-                showMessage("ബോട്ട് തുഴയാൻ കർഷകൻ ബോട്ടിൽ ഉണ്ടായിരിക്കണം!", "danger");
+                showMessage("The farmer must be in the boat to row across!", "danger");
                 return;
             }
 
-            // ബോട്ടിന്റെ സ്ഥാനം മാറ്റുക
+            // Move boat position
             state.boatPosition = state.boatPosition === 'left' ? 'right' : 'left';
             
             const boatElem = document.getElementById('boat');
@@ -267,7 +266,7 @@
                 boatElem.classList.remove('cross');
             }
 
-            // ബോട്ടിലുള്ള എല്ലാവരെയും പുതിയ കരയിലേക്ക് ഇറക്കുക
+            // Unload all items currently in the boat onto the new shore
             for (let key in state) {
                 if (state[key] === 'boat') {
                     state[key] = state.boatPosition;
@@ -278,33 +277,32 @@
             checkGameRules();
         }
 
-        // ഗെയിം വിൻ/ലൂസ് നിയമങ്ങൾ പരിശോധിക്കാൻ
+        // Check Win/Loss conditions
         function checkGameRules() {
-            // കർഷകൻ അടുത്തില്ലാത്ത കരയിലെ വസ്തുക്കൾ ചെക്ക് ചെയ്യുന്നു
             const farmerBank = state.farmer;
 
-            // ചെന്നായയും ആടും മാത്രം ഒരു കരയിൽ വന്നാൽ
+            // Wolf and Goat left alone
             if (state.wolf === state.goat && state.wolf !== farmerBank) {
-                showMessage("Game Over! ❌ കർഷകൻ ഇല്ലാത്ത സമയത്ത് ചെന്നായ ആടിനെ തിന്നു!", "danger");
+                showMessage("Game Over! ❌ The wolf ate the goat while the farmer was away!", "danger");
                 isGameOver = true;
                 return;
             }
 
-            // ആടും പുല്ലും മാത്രം ഒരു കരയിൽ വന്നാൽ
+            // Goat and Cabbage left alone
             if (state.goat === state.cabbage && state.goat !== farmerBank) {
-                showMessage("Game Over! ❌ കർഷകൻ ഇല്ലാത്ത സമയത്ത് ആട് പുല്ല് തിന്നു!", "danger");
+                showMessage("Game Over! ❌ The goat ate the cabbage while the farmer was away!", "danger");
                 isGameOver = true;
                 return;
             }
 
-            // വിജയിച്ചോ എന്ന് നോക്കാൻ (എല്ലാവരും വലത് കരയിൽ എത്തിയാൽ)
+            // Win Condition (Everything moved to the right bank)
             if (state.farmer === 'right' && state.wolf === 'right' && state.goat === 'right' && state.cabbage === 'right') {
-                showMessage("അഭിനന്ദനങ്ങൾ! 🎉 നിങ്ങൾ വിജയകരമായി എല്ലാവരെയും അക്കരെയെത്തിച്ചു!", "success");
+                showMessage("Congratulations! 🎉 You safely brought everyone to the other side!", "success");
                 isGameOver = true;
             }
         }
 
-        // സ്ക്രീനിലെ ഘടകങ്ങൾ പുതുക്കാൻ (Render Function)
+        // Update visual elements on screen
         function render() {
             const leftBank = document.getElementById('left-bank');
             const rightBank = document.getElementById('right-bank');
@@ -341,7 +339,7 @@
             render();
         }
 
-        // ഗെയിം സ്റ്റാർട്ട് ചെയ്യുമ്പോൾ ആദ്യ റൻഡർ
+        // Initial rendering on launch
         render();
     </script>
 </body>
