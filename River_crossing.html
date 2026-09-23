@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="ml">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>റിവർ ക്രോസിംഗ് പസിൽ (River Crossing Puzzle)</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            text-align: center;
+            background-color: #eef2f3;
+            padding: 20px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        p.instructions {
+            color: #555;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        /* Game Board */
+        #game-board {
+            display: flex;
+            width: 100%;
+            max-width: 800px;
+            height: 300px;
+            margin: 0 auto;
+            border: 4px solid #333;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #87CEEB;
+            position: relative;
+        }
+
+        /* River Banks */
+        .bank {
+            width: 30%;
+            height: 100%;
+            background-color: #8B5A2B;
+            display: flex;
+            flex-wrap: wrap;
+            align-content: center;
+            justify-content: center;
+            gap: 10px;
+            padding: 10px;
+            z-index: 2;
+        }
+
+        #left-bank {
+            border-right: 3px solid #5c3a1a;
+        }
+
+        #right-bank {
+            border-left: 3px solid #5c3a1a;
+        }
+
+        /* River & Boat */
+        #river {
+            width: 40%;
+            height: 100%;
+            background-color: #1E90FF;
+            position: relative;
+        }
+
+        #boat {
+            width: 110px;
+            height: 50px;
+            background-color: #D2691E;
+            border: 2px solid #5c2a00;
+            border-radius: 0 0 25px 25px;
+            position: absolute;
+            bottom: 20px;
+            left: 5px;
+            transition: left 0.8s ease-in-out;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+        }
+
+        #boat.cross {
+            left: calc(100% - 115px);
+        }
+
+        /* Game Characters/Items */
+        .item {
+            width: 60px;
+            height: 60px;
+            background-color: #fff;
+            border: 2px solid #333;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
+        }
+
+        .item:hover {
+            transform: scale(1.05);
+        }
+
+        .item span.emoji {
+            font-size: 24px;
+        }
+
+        .item span.label {
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        /* Controls & Message */
+        #controls {
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        #reset-btn {
+            background-color: #f44336;
+        }
+
+        #reset-btn:hover {
+            background-color: #da190b;
+        }
+
+        #message {
+            margin-top: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            min-height: 25px;
+        }
+
+        .success { color: green; }
+        .danger { color: red; }
+    </style>
+</head>
+<body>
+
+    <h1>റിവർ ക്രോസിംഗ് പസിൽ 🚣‍♂️</h1>
+    <p class="instructions">
+        <b>നിയമങ്ങൾ:</b> കർഷകന് ഒരു സമയം ഒരു വസ്തു മാത്രമേ ബോട്ടിൽ കയറ്റാൻ പറ്റൂ.<br> 
+        കർഷകൻ ഒപ്പമില്ലെങ്കിൽ <b>ചെന്നായ ആടിനെയും</b>, <b>ആട് പുല്ലിനെയും</b> തിന്നും!
+    </p>
+
+    <div id="game-board">
+        <!-- ഇടത് കര (Left Bank) -->
+        <div id="left-bank" class="bank">
+            <div class="item" id="farmer" onclick="moveToBoat('farmer')">
+                <span class="emoji">👨‍🌾</span>
+                <span class="label">കർഷകൻ</span>
+            </div>
+            <div class="item" id="wolf" onclick="moveToBoat('wolf')">
+                <span class="emoji">🐺</span>
+                <span class="label">ചെന്നായ</span>
+            </div>
+            <div class="item" id="goat" onclick="moveToBoat('goat')">
+                <span class="emoji">🐐</span>
+                <span class="label">ആട്</span>
+            </div>
+            <div class="item" id="cabbage" onclick="moveToBoat('cabbage')">
+                <span class="emoji">🥬</span>
+                <span class="label">പുല്ല്</span>
+            </div>
+        </div>
+
+        <!-- നദി & ബോട്ട് (River & Boat) -->
+        <div id="river">
+            <div id="boat"></div>
+        </div>
+
+        <!-- വലത് കര (Right Bank) -->
+        <div id="right-bank" class="bank"></div>
+    </div>
+
+    <div id="controls">
+        <button onclick="crossRiver()">ബോട്ട് അക്കരേക്ക്/ഇക്കരേക്ക് മാറ്റുക 🚣</button>
+        <button id="reset-btn" onclick="resetGame()">വീണ്ടും തുടങ്ങുക 🔄</button>
+    </div>
+
+    <div id="message"></div>
+
+    <script>
+        // ഗെയിം അവസ്ഥകൾ (Game State)
+        const state = {
+            farmer: 'left',
+            wolf: 'left',
+            goat: 'left',
+            cabbage: 'left',
+            boatPosition: 'left'
+        };
+
+        let isGameOver = false;
+
+        // വസ്തുക്കളെ ക്ലിക്ക് ചെയ്യുമ്പോൾ ബോട്ടിലേക്കോ കരയിലേക്കോ മാറ്റാൻ
+        function moveToBoat(item) {
+            if (isGameOver) return;
+
+            // വസ്തു നിൽക്കുന്നത് ബോട്ട് നിൽക്കുന്ന കരയിലാണെങ്കിൽ മാത്രം ബോട്ടിൽ കയറ്റാം
+            if (state[item] === state.boatPosition) {
+                // ബോട്ട് കപ്പാസിറ്റി ചെക്ക് ചെയ്യുക (പരമാവധി കർഷകൻ + 1 വസ്തു)
+                const itemsInBoat = Object.keys(state).filter(k => state[k] === 'boat');
+                
+                if (item === 'farmer') {
+                    state.farmer = 'boat';
+                } else {
+                    // ബോട്ടിൽ ഇതിനകം ഒരു വസ്തു ഉണ്ടെങ്കിൽ വേറെ വസ്തു കയറ്റാൻ പറ്റില്ല
+                    if (itemsInBoat.includes('wolf') || itemsInBoat.includes('goat') || itemsInBoat.includes('cabbage')) {
+                        showMessage("ബോട്ടിൽ കർഷകനെ കൂടാതെ ഒരു സാധനം മാത്രമേ കയറ്റാൻ പറ്റൂ!", "danger");
+                        return;
+                    }
+                    state[item] = 'boat';
+                }
+            } else if (state[item] === 'boat') {
+                // ബോട്ടിൽ ഉള്ളതിനെ ബോട്ട് നിലവിലുള്ള കരയിലേക്ക് ഇറക്കുക
+                state[item] = state.boatPosition;
+            }
+
+            render();
+        }
+
+        // ബോട്ട് അക്കരെയോ ഇക്കരെയോ നീക്കാൻ
+        function crossRiver() {
+            if (isGameOver) return;
+
+            // കർഷകനില്ലാതെ ബോട്ട് ഓടില്ല
+            if (state.farmer !== 'boat') {
+                showMessage("ബോട്ട് തുഴയാൻ കർഷകൻ ബോട്ടിൽ ഉണ്ടായിരിക്കണം!", "danger");
+                return;
+            }
+
+            // ബോട്ടിന്റെ സ്ഥാനം മാറ്റുക
+            state.boatPosition = state.boatPosition === 'left' ? 'right' : 'left';
+            
+            const boatElem = document.getElementById('boat');
+            if (state.boatPosition === 'right') {
+                boatElem.classList.add('cross');
+            } else {
+                boatElem.classList.remove('cross');
+            }
+
+            // ബോട്ടിലുള്ള എല്ലാവരെയും പുതിയ കരയിലേക്ക് ഇറക്കുക
+            for (let key in state) {
+                if (state[key] === 'boat') {
+                    state[key] = state.boatPosition;
+                }
+            }
+
+            render();
+            checkGameRules();
+        }
+
+        // ഗെയിം വിൻ/ലൂസ് നിയമങ്ങൾ പരിശോധിക്കാൻ
+        function checkGameRules() {
+            // കർഷകൻ അടുത്തില്ലാത്ത കരയിലെ വസ്തുക്കൾ ചെക്ക് ചെയ്യുന്നു
+            const farmerBank = state.farmer;
+
+            // ചെന്നായയും ആടും മാത്രം ഒരു കരയിൽ വന്നാൽ
+            if (state.wolf === state.goat && state.wolf !== farmerBank) {
+                showMessage("Game Over! ❌ കർഷകൻ ഇല്ലാത്ത സമയത്ത് ചെന്നായ ആടിനെ തിന്നു!", "danger");
+                isGameOver = true;
+                return;
+            }
+
+            // ആടും പുല്ലും മാത്രം ഒരു കരയിൽ വന്നാൽ
+            if (state.goat === state.cabbage && state.goat !== farmerBank) {
+                showMessage("Game Over! ❌ കർഷകൻ ഇല്ലാത്ത സമയത്ത് ആട് പുല്ല് തിന്നു!", "danger");
+                isGameOver = true;
+                return;
+            }
+
+            // വിജയിച്ചോ എന്ന് നോക്കാൻ (എല്ലാവരും വലത് കരയിൽ എത്തിയാൽ)
+            if (state.farmer === 'right' && state.wolf === 'right' && state.goat === 'right' && state.cabbage === 'right') {
+                showMessage("അഭിനന്ദനങ്ങൾ! 🎉 നിങ്ങൾ വിജയകരമായി എല്ലാവരെയും അക്കരെയെത്തിച്ചു!", "success");
+                isGameOver = true;
+            }
+        }
+
+        // സ്ക്രീനിലെ ഘടകങ്ങൾ പുതുക്കാൻ (Render Function)
+        function render() {
+            const leftBank = document.getElementById('left-bank');
+            const rightBank = document.getElementById('right-bank');
+            const boat = document.getElementById('boat');
+
+            ['farmer', 'wolf', 'goat', 'cabbage'].forEach(id => {
+                const elem = document.getElementById(id);
+                if (state[id] === 'left') {
+                    leftBank.appendChild(elem);
+                } else if (state[id] === 'right') {
+                    rightBank.appendChild(elem);
+                } else if (state[id] === 'boat') {
+                    boat.appendChild(elem);
+                }
+            });
+        }
+
+        function showMessage(msg, type) {
+            const msgElem = document.getElementById('message');
+            msgElem.innerText = msg;
+            msgElem.className = type;
+        }
+
+        function resetGame() {
+            state.farmer = 'left';
+            state.wolf = 'left';
+            state.goat = 'left';
+            state.cabbage = 'left';
+            state.boatPosition = 'left';
+            isGameOver = false;
+
+            document.getElementById('boat').classList.remove('cross');
+            showMessage("", "");
+            render();
+        }
+
+        // ഗെയിം സ്റ്റാർട്ട് ചെയ്യുമ്പോൾ ആദ്യ റൻഡർ
+        render();
+    </script>
+</body>
+</html>
